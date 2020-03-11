@@ -104,7 +104,7 @@ for map in shift:
     resDir = "./results"
     if not os.path.exists(resDir):
         os.makedirs(resDir)
-    newFile = open(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + str(num) + ".dat", "wb")
+    newFile = open(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + str(num) + ".dat", "wb")
     newFile.write(bytearray(fileBytes))
     newPalettes.append(palette)
     num += 1
@@ -201,13 +201,13 @@ for map in shift:
                 index2 += 1;
 
     images.append(img)
-    img.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + str(num) + ".png")
+    img.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + str(num) + ".png")
     
 compilation = PIL.Image.new('RGBA', (frameHeader[1] * len(shift), frameHeader[2]))
 i = 0
 for img in images:
     i += 1
     compilation.paste(img, (i * frameHeader[1], 0))
-compilation.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "-comp" + "_" + str(num) + ".png")
+compilation.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "-comp" + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + str(num) + ".png")
     
 root.mainloop()
