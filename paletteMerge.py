@@ -1,16 +1,17 @@
 import sys
-
+import os
+import struct
 
 if sys.version_info[0] > 2:
     from tkinter import *
     from tkinter import filedialog
     root = Tk()
-    filename = filedialog.askopenfilename(initialdir = "./assets",title = "Open D2 Base Palette (won't be modified)",filetypes = (("d2 palette files","*.dat"),("all files","*.*")))
+    paletteName = filedialog.askopenfilename(initialdir = "./assets",title = "Open D2 Base Palette (won't be modified)",filetypes = (("d2 palette files","*.dat"),("all files","*.*")))
 else:
     from Tkinter import *
     import Tkinter, Tkconstants, tkFileDialog
     root = Tk()
-    filename = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Open D2 Base Palette (won't be modified)",filetypes = (("d2 palette files","*.dat"),("all files","*.*")))
+    paletteName = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Open D2 Base Palette (won't be modified)",filetypes = (("d2 palette files","*.dat"),("all files","*.*")))
 
 MAX_ROWS = 36
 FONT_SIZE = 10 # (pixels)
@@ -18,7 +19,7 @@ FONT_SIZE = 10 # (pixels)
 root.title("Palette merger by Fa-b")
 
 bgrMap = []
-with open(filename, "rb") as f:
+with open(paletteName, "rb") as f:
     bgr = f.read(3)
     while bgr:
         bgrMap.append(bgr)
@@ -54,12 +55,12 @@ for color in basePalette:
     idx += 1
 
 if sys.version_info[0] > 2:
-    filename = filedialog.askopenfilename(initialdir = "./assets",title = "Select D2 Color Map (won't be modified)",filetypes = (("d2 map files","*.dat"),("all files","*.*")))
+    mapName = filedialog.askopenfilename(initialdir = "./assets",title = "Select D2 Color Map (won't be modified)",filetypes = (("d2 map files","*.dat"),("all files","*.*")))
 else:
-    filename = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Select D2 Color Map (won't be modified)",filetypes = (("d2 map files","*.dat"),("all files","*.*")))
+    mapName = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Select D2 Color Map (won't be modified)",filetypes = (("d2 map files","*.dat"),("all files","*.*")))
 
 shift = []
-with open(filename, "rb") as f:
+with open(mapName, "rb") as f:
     map = f.read(256)
     while map:
         shift.append(map)
@@ -71,26 +72,53 @@ for map in shift:
     palette = []
     row = 0
     col = 0
-    idx = 0
-    pop = Toplevel()
-    pop.title("Palette " + str(num))
+    #idx = 0
+    #pop = Toplevel()
+    #pop.title("Palette " + str(num))
+    fileBytes = []
     for i in map:
+        fileBytes.append(basePalette[i][2])
+        fileBytes.append(basePalette[i][1])
+        fileBytes.append(basePalette[i][0])
         palette.append(basePalette[i])
-        rgbStr = rgb_to_hex(basePalette[i])
-        fg = "#000000"
-        if color[0] + color[1] + color[2] < 384:
-            fg = "#FFFFFF"
-        e = Label(pop, text=str(idx) + ": " + rgbStr, background=rgbStr, font=(None, -FONT_SIZE), fg=fg)
-        e.grid(row=row, column=col, sticky=E+W)
-        row += 1
-        if (row > 36):
-            row = 0
-            col += 1
-        idx += 1
+        #rgbStr = rgb_to_hex(basePalette[i])
+        #fg = "#000000"
+        #if color[0] + color[1] + color[2] < 384:
+        #    fg = "#FFFFFF"
+        #e = Label(pop, text=str(idx) + ": " + rgbStr, background=rgbStr, font=(None, -FONT_SIZE), fg=fg)
+        #e.grid(row=row, column=col, sticky=E+W)
+        #row += 1
+        #if (row > 28):
+        #    row = 0
+        #    col += 1
+        #idx += 1
+    resDir = "./results"
+    if not os.path.exists(resDir):
+        os.makedirs(resDir)
+    newFile = open(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + str(num) + ".dat", "wb")
+    newFile.write(bytearray(fileBytes))
     newPalettes.append(palette)
     num += 1
+    
+if sys.version_info[0] > 2:
+    spriteName = filedialog.askopenfilename(initialdir = "./assets",title = "Select D2 Sprite (won't be modified)",filetypes = (("d2 sprite files","*.dc6"),("all files","*.*")))
+else:
+    spriteName = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Select D2 Sprite (won't be modified)",filetypes = (("d2 sprite files","*.dc6"),("all files","*.*")))
 
-print(shift)
+fileHeader = []
+frameHeader = []
+sprite = []
+with open(spriteName, "rb") as f:
+    long = struct.unpack('i', f.read(4))
+    while len(fileHeader) < 6:
+        fileHeader.append(long)
+        long = struct.unpack('i', f.read(4))
+    while len(frameHeader) < 8:
+        frameHeader.append(long)
+        long = struct.unpack('i', f.read(4))
+        
+print("File Header:", fileHeader)
+print("Frame Header:", frameHeader)
 
 sys.stdout.flush()
 
