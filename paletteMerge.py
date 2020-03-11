@@ -106,16 +106,23 @@ else:
     spriteName = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Select D2 Sprite (won't be modified)",filetypes = (("d2 sprite files","*.dc6"),("all files","*.*")))
 
 fileHeader = []
+framePointers = []
 frameHeader = []
 sprite = []
 with open(spriteName, "rb") as f:
-    long = struct.unpack('i', f.read(4))
+    long = struct.unpack('<i', f.read(4))[0]
     while len(fileHeader) < 6:
         fileHeader.append(long)
-        long = struct.unpack('i', f.read(4))
+        long = struct.unpack('<i', f.read(4))[0]
+    while len(framePointers) < (fileHeader[4] * fileHeader[5]):
+        framePointers.append(long)
+        long = struct.unpack('<i', f.read(4))[0]
+    if(len(framePointers) > 1):
+        raise ValueError('Not supporting multiple frames & directions yet :-(.')
+    # TODO read file into bytearray and work with that, that way we can jump to the adress offset of each frame_header
     while len(frameHeader) < 8:
         frameHeader.append(long)
-        long = struct.unpack('i', f.read(4))
+        long = struct.unpack('<i', f.read(4))[0]
         
 print("File Header:", fileHeader)
 print("Frame Header:", frameHeader)
