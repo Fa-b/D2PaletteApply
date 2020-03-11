@@ -67,6 +67,11 @@ with open(mapName, "rb") as f:
     while map:
         shift.append(map)
         map = f.read(256)
+        
+if sys.version_info[0] > 2:
+    spriteName = filedialog.askopenfilename(initialdir = "./assets",title = "Select D2 Sprite (won't be modified)",filetypes = (("d2 sprite files","*.dc6"),("all files","*.*")))
+else:
+    spriteName = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Select D2 Sprite (won't be modified)",filetypes = (("d2 sprite files","*.dc6"),("all files","*.*")))
 
 num = 0
 newPalettes = []
@@ -101,11 +106,6 @@ for map in shift:
     newFile.write(bytearray(fileBytes))
     newPalettes.append(palette)
     num += 1
-    
-    if sys.version_info[0] > 2:
-        spriteName = filedialog.askopenfilename(initialdir = "./assets",title = "Select D2 Sprite (won't be modified)",filetypes = (("d2 sprite files","*.dc6"),("all files","*.*")))
-    else:
-        spriteName = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Select D2 Sprite (won't be modified)",filetypes = (("d2 sprite files","*.dc6"),("all files","*.*")))
 
     fileHeader = []
     framePointers = []
@@ -131,42 +131,73 @@ for map in shift:
             sprite.append(ord(struct.unpack('c', data)[0]))
             data = f.read(1)
             
-        sprite.reverse()
+    # sprite.reverse()
         
     print("File Header:", fileHeader)
     print("Frame Header:", frameHeader)
-    print("Sprite:", sprite)
+    print("Sprite:", len(sprite))
     sys.stdout.flush()
     
-    print(len(sprite))
+    # print(len(sprite))
         
-    pic = []
-    x = 0
-    y = 0
-    pic.append([])
-    for idx in range(frameHeader[7]):
-        if idx == 0x80:
-            pic[y].append(255)
-            x = 0
-            y += 1
-            pic.append([])
-            break;
-        elif idx & 0x80 == 0x80:
-            for j in range(idx & 0x80):
-                pic[y].append(255)
-        else:
-            pic[y].append(sprite[idx])
-        x += 1
+    # pic = []
+    # x = 0
+    # y = 0
+    # pic.append([]);
+    # for idx in range(0, frameHeader[7]):
+        # code = sprite[idx]
+        # if (code == 128):
+            # pic[y].append([255,255,255])
+            # x = 0
+            # y += 1
+            # pic.append([]);
+            # continue
+        # elif (code & 128) == 128:
+            # for j in range(0, code & 128):
+                # pic[y].append([255,255,255])
+        # else:
+            # pic[y].append(palette[code])
+        # x += 1
         
-    img = PIL.Image.new('RGBA', (frameHeader[1], frameHeader[2]))
-        
-    for x in range(len(pic[0])):
-        for y in range(len(pic)):
-            if pic[x][y] == 255:    # <- bug
-                img.putpixel((x,y), (0,0,0,0))
-            else:
-                img.putpixel((x,y), (palette[pic[x][y]][0],palette[pic[x][y]][1],palette[pic[x][y]][2],255))
+    # img = PIL.Image.new('RGBA', (frameHeader[1], frameHeader[2]))
+    
+    # print("x:", len(pic[0]))
+    # print("y:", len(pic))
+    # sys.stdout.flush()
+    
+    # for x in range(0, len(pic[0])):
+        # for y in range(len(pic)):
+            # if pic[x][y] == [255,255,255]:
+                # img.putpixel((x,y), (0,0,0,0))
+            # else:
+                # img.putpixel((x, y), (pic[x][y][0], pic[x][y][1], pic[x][y][2], 255))
                 
+    img = PIL.Image.new('RGBA', (frameHeader[1], frameHeader[2]))
+    
+    index1 = 0;
+    index2 = 0;
+    index3 = frameHeader[2] - 1;
+    index4 = 0
+    while index4 < frameHeader[7]: #for(long index4 = 0; index4 < (long) dc6FrameHeader.length; ++index4)
+        index4 += 1
+        num1 = sprite[index1];
+        index1 += 1;
+        if (num1 == 128):
+            index2 = 0;
+            index3 -= 1;
+        elif ((num1 & 128) == 128):
+            index2 += (num1 & 127);
+        else:
+            index5 = 0
+            while index5 < num1: #for(long index5 = 0; index5 < (long) num1; ++index5)
+                index5 += 1
+                num2 = sprite[index1];
+                index1 += 1;
+                index4 += 1;
+                img.putpixel((index2, index3), (palette[num2][0], palette[num2][1], palette[num2][2], 255))
+                index2 += 1;
+
+        
     img.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + str(num) + ".png")
     
 
