@@ -3,6 +3,7 @@ import sys
 import os
 import struct
 import PIL.Image
+from PIL import ImageChops
 
 if sys.version_info[0] > 2:
     from tkinter import *
@@ -75,6 +76,7 @@ else:
 
 num = 0
 newPalettes = []
+images = []
 for map in shift:
     palette = []
     row = 0
@@ -171,7 +173,8 @@ for map in shift:
                 # img.putpixel((x,y), (0,0,0,0))
             # else:
                 # img.putpixel((x, y), (pic[x][y][0], pic[x][y][1], pic[x][y][2], 255))
-                
+       
+    
     img = PIL.Image.new('RGBA', (frameHeader[1], frameHeader[2]))
     
     index1 = 0;
@@ -197,9 +200,14 @@ for map in shift:
                 img.putpixel((index2, index3), (palette[num2][0], palette[num2][1], palette[num2][2], 255))
                 index2 += 1;
 
-        
+    images.append(img)
     img.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + str(num) + ".png")
     
-
-
+compilation = PIL.Image.new('RGBA', (frameHeader[1] * len(shift), frameHeader[2]))
+i = 0
+for img in images:
+    i += 1
+    compilation.paste(img, (i * frameHeader[1], 0))
+compilation.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "-comp" + "_" + str(num) + ".png")
+    
 root.mainloop()
