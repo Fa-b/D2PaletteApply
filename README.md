@@ -1,6 +1,6 @@
 # D2PaletteApply
 <p>A little python tool to generate palette items</p>
-<p>This script was only implemented to generate colored item images once..<br>
+<p>This script was only implemented to generate colored item images once for [this](https://github.com/Fa-b/ItemScreenshot)Project.<br>
 Maybe it can still be of use to someone.</p>
 
 # Requirements
