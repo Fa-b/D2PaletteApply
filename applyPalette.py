@@ -59,7 +59,7 @@ if sys.version_info[0] > 2:
 else:
     mapName = tkFileDialog.askopenfilename(initialdir = "./assets",title = "Select D2 Color Map (won't be modified)",filetypes = (("d2 map files","*.dat"),("all files","*.*")))
     
-    shift = [bytearray(range(0, 256))]
+shift = [bytearray(range(0, 256))]
 with open(mapName, "rb") as f:
     map = f.read(256)
     while map:
