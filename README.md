@@ -5,7 +5,7 @@
 Maybe it can still be of use to someone.</p>
 
 # Requirements
-- Installed python (tested v2.7 & v3.8)
+- Installed python (tested only v3.8 atm)
 - Installed PIL
 
 # Usage
