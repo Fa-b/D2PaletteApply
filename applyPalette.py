@@ -150,13 +150,11 @@ for map in shift:
                     img.putpixel((index2, index3), (palette[num2][0], palette[num2][1], palette[num2][2], 255))
                     index2 += 1;
         
-        subDir = ""
-        if(len(framePointers) > 1):
-            subDir = "/" + str(index)
-            if not os.path.exists(resDir + subDir):
-                os.makedirs(resDir + subDir)
+        subDir = "/" + str(index)
+        if not os.path.exists(resDir + subDir):
+            os.makedirs(resDir + subDir)
             
-        img.save(resDir + subDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + str(num) + ".png")
+        img.save(resDir + subDir + "/" + str(num) + ".png")
         rowImages.append(img)
         
         
