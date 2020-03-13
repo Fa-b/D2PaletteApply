@@ -76,7 +76,7 @@ else:
 
 num = 0
 newPalettes = []
-images = []
+colImages = []
 for map in shift:
     palette = []
     row = 0
@@ -90,74 +90,93 @@ for map in shift:
     resDir = "./results"
     if not os.path.exists(resDir):
         os.makedirs(resDir)
-    newFile = open(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + str(num) + ".dat", "wb")
+    newFile = open(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + "-" + str(num) + ".dat", "wb")
     newFile.write(bytearray(fileBytes))
     newPalettes.append(palette)
 
-    fileHeader = []
-    framePointers = []
-    frameHeader = []
-    sprite = []
     with open(spriteName, "rb") as f:
-        long = f.read(4)
-        while len(fileHeader) < 6:
-            fileHeader.append(struct.unpack('<i', long)[0])
-            long = f.read(4)
-        while len(framePointers) < (fileHeader[4] * fileHeader[5]):
-            framePointers.append(struct.unpack('<i', long)[0])
-            long = f.read(4)
-        if(len(framePointers) > 1):
-            raise ValueError('Not supporting multiple frames & directions yet :-(.')
-        # TODO read file into bytearray and work with that, that way we can jump to the adress offset of each frame_header
-        while len(frameHeader) < 7:
-            frameHeader.append(struct.unpack('<i', long)[0])
-            long = f.read(4)
-        frameHeader.append(struct.unpack('<i', long)[0])
-        data = f.read(1)
-        while data:
-            sprite.append(ord(struct.unpack('c', data)[0]))
-            data = f.read(1)
-            
-    print("File Header:", fileHeader)
-    print("Frame Header:", frameHeader)
-    sys.stdout.flush()
-    
-    img = PIL.Image.new('RGBA', (frameHeader[1], frameHeader[2]))
-    
-    index1 = 0;
-    index2 = 0;
-    index3 = frameHeader[2] - 1;
-    index4 = 0
-    while index4 < frameHeader[7]:
-        index4 += 1
-        num1 = sprite[index1];
-        index1 += 1;
-        if (num1 == 128):
-            index2 = 0;
-            index3 -= 1;
-        elif ((num1 & 128) == 128):
-            index2 += (num1 & 127);
-        else:
-            index5 = 0
-            while index5 < num1:
-                index5 += 1
-                num2 = sprite[index1];
-                index1 += 1;
-                index4 += 1;
-                img.putpixel((index2, index3), (palette[num2][0], palette[num2][1], palette[num2][2], 255))
-                index2 += 1;
+        spriteFile = bytearray(f.read())
 
-    
-    img.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + str(num) + ".png")
-    images.append(img)
-	
+    filePtr = 0
+    fileSize = 4*6
+    fileHeader = struct.unpack('<IIIIII', spriteFile[filePtr:filePtr + fileSize])
+    filePtr += fileSize
+    fileSize = 4*(fileHeader[4]*fileHeader[5])
+    fmt = '<%dI' % (fileSize / 4)
+    framePointers = struct.unpack(fmt, spriteFile[filePtr:filePtr + fileSize])
+    filePtr += fileSize
+    fileSize = 4*8
+    frameHeaders = []
+    for framePtr in framePointers:
+        frameHeaders.append(struct.unpack('<IIIIIIII', spriteFile[framePtr:framePtr + fileSize]))
+        
+    print("File Header:", fileHeader)
+        
+    dataPtr = framePointers[0]
+    index = 0
+    rowImages = []
+    for frameHeader in frameHeaders:
+        fmt = '%dc' % frameHeader[7]
+        sprite = struct.unpack(fmt, spriteFile[32 + dataPtr: 32 + dataPtr + frameHeader[7]])
+                
+        
+        print("Sprite Offset:", dataPtr)
+        print("Frame Header:", frameHeader)
+        
+        sys.stdout.flush()
+        
+        img = PIL.Image.new('RGBA', (frameHeader[1], frameHeader[2]))
+        
+        index1 = 0;
+        index2 = 0;
+        index3 = frameHeader[2] - 1;
+        index4 = 0
+        while index4 < frameHeader[7]:
+            index4 += 1
+            num1 = ord(sprite[index1]);
+            index1 += 1;
+            if (num1 == 128):
+                index2 = 0;
+                index3 -= 1;
+            elif ((num1 & 128) == 128):
+                index2 += (num1 & 127);
+            else:
+                index5 = 0
+                while index5 < num1:
+                    index5 += 1
+                    num2 = ord(sprite[index1]);
+                    index1 += 1;
+                    index4 += 1;
+                    img.putpixel((index2, index3), (palette[num2][0], palette[num2][1], palette[num2][2], 255))
+                    index2 += 1;
+        
+        subDir = ""
+        if(len(framePointers) > 1):
+            subDir = "/" + str(index)
+            if not os.path.exists(resDir + subDir):
+                os.makedirs(resDir + subDir)
+            
+        img.save(resDir + subDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + str(num) + ".png")
+        rowImages.append(img)
+        
+        
+        dataPtr = frameHeader[6]
+        index += 1
+        
+    row = PIL.Image.new('RGBA', (frameHeader[1] * len(framePointers), frameHeader[2]))
+    i = 0
+    for img in rowImages:
+        row.paste(img, (i * frameHeader[1], 0))
+        i += 1
+    row.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "-comp" + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + "-" + str(num) + ".png")
+    colImages.append(row)
     num += 1
     
-compilation = PIL.Image.new('RGBA', (frameHeader[1] * len(shift), frameHeader[2]))
+col = PIL.Image.new('RGBA', (frameHeader[1] * len(framePointers), frameHeader[2] * len(shift)))
 i = 0
-for img in images:
-    compilation.paste(img, (i * frameHeader[1], 0))
+for img in colImages:
+    col.paste(img, (0, frameHeader[2] * i))
     i += 1
-compilation.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "-comp" + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + ".png")
-    
+col.save(resDir + "/" + paletteName[0:paletteName.rfind(".")].split("/")[-1] + "-comp" + "_" + spriteName[0:spriteName.rfind(".")].split("/")[-1] + ".png")
+        
 root.mainloop()

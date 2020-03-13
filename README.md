@@ -1,6 +1,6 @@
 # D2PaletteApply
 <p>A little python tool to generate palette items</p>
-<p>This script was only implemented to generate colored item images once for this project here:<br>
+<p>This script was only implemented to generate colored item images and font images once for this project here:<br>
   https://github.com/Fa-b/ItemScreenshot<br><br>
 Maybe it can still be of use to someone.</p>
 
@@ -15,8 +15,10 @@ start from shell using `python applyPalette`
 - select a .dc6 item file
 
 <p>All will be applied and output saved to `./results/`.<br>
-only .dc6 files containing single frames and directions are possible at the moment.<br>
-Changing the implementation to support more files will be easy though.</p>
+.dc6 files containing multiple frames and or directions are also supported now.<br>
+We have generated a new colormap for font colors. You can find it in the `/assets/font_shift.dat`</p>
+
+Have fun :-)
 
 
 # Outputs
